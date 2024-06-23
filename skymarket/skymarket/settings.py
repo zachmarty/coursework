@@ -14,10 +14,11 @@ import os
 from pathlib import Path
 
 from dotenv import load_dotenv
-
-load_dotenv()
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+load_dotenv(BASE_DIR / ".env")
+# Build paths inside the project like this: BASE_DIR / 'subdir'.
+
 
 
 # Quick-start development settings - unsuitable for production
@@ -46,6 +47,7 @@ INSTALLED_APPS = [
     "users",
     "ads",
     "redoc",
+    "drf_yasg",
 ]
 
 
@@ -82,6 +84,9 @@ WSGI_APPLICATION = "skymarket.wsgi.application"
 
 # TODO здесь мы настраиваем аутентификацию и пагинацию
 REST_FRAMEWORK = {
+    "DEFAULT_AUTHENTICATION_CLASS": (
+        "rest_framework_simplejwt.authentication.JWTAuthentication",
+    )
 }
 # TODO здесь мы настраиваем Djoser
 DJOSER = {
@@ -92,6 +97,14 @@ DJOSER = {
 
 # TODO здесь необходимо настроить подключение к БД
 DATABASES = {
+    "default": {
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": os.getenv("DB_NAME"),
+        "USER": os.getenv("DB_USER"),
+        "PASSWORD": os.getenv("DB_PASSWORD"),
+        "HOST": os.getenv("DB_HOST"),
+        "PORT": os.getenv("DB_PORT"),
+    }
 }
 
 
@@ -153,3 +166,14 @@ EMAIL_HOST = os.environ.get("EMAIL_HOST", "smtp.gmail.com")
 EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER")
 EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD")
 EMAIL_PORT = os.environ.get("EMAIL_PORT")
+
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:8000",
+    "https://read-and-write.example.com",
+]
+
+CSRF_TRUSTED_ORIGINS = [
+    "https://read-and-write.example.com",
+]
+
+AUTH_USER_MODEL = "users.User"
