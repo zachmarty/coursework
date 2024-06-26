@@ -7,12 +7,12 @@ from django.utils.translation import gettext_lazy as _
 
 class User(AbstractUser):
     class UserRoles(models.TextChoices):
-        USER = "1", "user"
+        USER = "1", "USER"
         ADMIN = "2", "ADMIN"
 
     username = None
     first_name = models.CharField(max_length=50, verbose_name="Имя")
-    last_login = models.CharField(max_length=50, verbose_name="Фамилия")
+    last_name = models.CharField(max_length=50, verbose_name="Фамилия")
     phone = PhoneNumberField(verbose_name="Телефон")
     email = models.EmailField(max_length=75, verbose_name="Почта", unique=True, default="example@example.com")
     role = models.CharField(
