@@ -18,4 +18,6 @@ class PriceValidator:
             raise ValidationError("price cannot be blank")
         if tmp_val > 2147483647:
             raise ValidationError("price is too big")
+        if tmp_val <=0:
+            raise ValidationError("price cannot be less than 0")
     

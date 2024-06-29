@@ -7,7 +7,7 @@ from users.models import User
 class Ad(models.Model):
     title = models.CharField(max_length=200, verbose_name="Наименование")
     price = models.PositiveIntegerField(verbose_name="Цена")
-    description = models.TextField(max_length=1000, verbose_name="Описание", blank=True)
+    description = models.TextField(max_length=1000, verbose_name="Описание", blank=True, null=True)
     author = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="Автор")
     created_at = models.DateTimeField(
         blank=True, auto_now_add=True, verbose_name="Дата создания"

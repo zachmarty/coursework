@@ -22,15 +22,20 @@ class AdSerializer(serializers.ModelSerializer):
 
 class AdDetailSerializer(serializers.ModelSerializer):
     # TODO сериалайзер для модели
+    phone = serializers.CharField()
+    author_first_name = serializers.CharField()
+    author_last_name = serializers.CharField()
+    author_id = serializers.IntegerField()
+
     class Meta:
         model = Ad
-        exclude = [
-            "created_at",
+        fields = [
+            "title",
+            "price",
+            "description",
+            "image",
+            "phone",
+            "author_first_name",
+            "author_last_name",
+            "author_id",
         ]
-        extra_kwargs = {
-            "phone":{"required":True},
-            "author_first_name":{"required":True},
-            "author_last_name":{"required":True},
-            "phone":{"required":True},
-            "author_id":{"required":True},
-        }
