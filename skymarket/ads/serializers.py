@@ -1,15 +1,19 @@
 from rest_framework import serializers
 
-from ads.models import Ad
-from ads.validators import PriceValidator
+from ads.models import Ad, Comment
+from ads.validators import PriceValidator, TextLengthValidator
 
 
 # TODO Сериалайзеры. Предлагаем Вам такую структуру, однако вы вправе использовать свою
 
 
 class CommentSerializer(serializers.ModelSerializer):
-    # TODO сериалайзер для модели
-    pass
+    class Meta:
+        model = Comment
+        fields = [
+            "text",
+        ]
+        validators = [TextLengthValidator(field="text")]
 
 
 class AdSerializer(serializers.ModelSerializer):

@@ -18,7 +18,7 @@ class User(AbstractUser):
     role = models.CharField(
         choices=UserRoles.choices, default=UserRoles.USER, verbose_name="Роль"
     )
-    image = models.ImageField(verbose_name="Аватар", blank=True, null=True)
+    image = models.URLField(verbose_name="Аватар", blank=True, null=True)
 
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = []

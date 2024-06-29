@@ -1,8 +1,8 @@
 from rest_framework import viewsets
 from rest_framework.response import Response
-from ads.models import Ad
-from ads.paginators import AdPaginator
-from ads.serializers import AdDetailSerializer, AdSerializer
+from ads.models import Ad, Comment
+from ads.paginators import AdPaginator, CommentPaginator
+from ads.serializers import AdDetailSerializer, AdSerializer, CommentSerializer
 from rest_framework.generics import ListAPIView
 from rest_framework.exceptions import NotFound
 from rest_framework.permissions import IsAuthenticated
@@ -102,4 +102,68 @@ class MyAdsView(ListAPIView):
 
 
 class CommentViewSet(viewsets.ModelViewSet):
-    pass
+    serializer_class = CommentSerializer
+    queryset = Ad.objects.all()
+    pagination_class = CommentPaginator
+    lookup_url_kwarg = "ad_id"
+    lookup_field = "ad_id"
+
+    def get_queryset(self):
+        ad = self.kwargs['ad_id']
+        ad = Ad.objects.filter(id = ad)
+        if not ad.exists():
+            raise NotFound
+        ad = ad.first()
+        queryset = Comment.objects.filter(ad = ad)
+        print('ok')
+        return self.paginate_queryset(queryset)
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        serializer = self.get_serializer(queryset, many = True)
+        print("ok")
+        return Response(serializer.data)
+    
+    def create(self, request, *args, **kwargs):
+        data = request.data
+        user = self.request.user
+        instance = self.get_serializer(data = data)
+        instance.is_valid(raise_exception = True)
+        ad = self.kwargs['ad_id']
+        ad = Ad.objects.filter(id = ad).first()
+        new_comment = Comment.objects.create(text = data['text'], author = user, ad = ad)
+        new_comment.save()
+        output_data = {
+            "pk":new_comment.id,
+            "author_id":user.id,
+            "created_at":new_comment.created_at,
+            "author_first_name":user.first_name,
+            "author_last_name":user.last_name,
+            "ad_id":ad.id,
+            "author_image":user.image,
+        }
+        output_data.update(instance.validated_data)
+        return Response(output_data)
+    
+    def retrieve(self, request, *args, **kwargs):
+        ad = self.kwargs['ad_id']
+        ad = Ad.objects.filter(id = ad)
+        if not ad.exists():
+            raise NotFound
+        ad = ad.first()
+        comment = Comment.objects.filter(id = kwargs['pk'])
+        if not comment.exists():
+            raise NotFound
+        comment = comment.first()
+        user = self.request.user
+        output_data = {
+            "pk":comment.id,
+            "text":comment.text,
+            "author_id":user.id,
+            "created_at":comment.created_at,
+            "author_first_name":user.first_name,
+            "author_last_name":user.last_name,
+            "ad_id":ad.id,
+            "author_image":user.image,
+        }
+
