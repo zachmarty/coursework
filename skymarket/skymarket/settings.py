@@ -14,11 +14,11 @@ import os
 from pathlib import Path
 
 from dotenv import load_dotenv
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 load_dotenv(BASE_DIR / ".env")
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
-
 
 
 # Quick-start development settings - unsuitable for production
@@ -48,6 +48,8 @@ INSTALLED_APPS = [
     "ads",
     "redoc",
     "drf_yasg",
+    "rest_framework.authtoken",
+    "djoser",
 ]
 
 
@@ -85,12 +87,13 @@ WSGI_APPLICATION = "skymarket.wsgi.application"
 # TODO здесь мы настраиваем аутентификацию и пагинацию
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
-        'rest_framework_simplejwt.authentication.JWTAuthentication',
+        "rest_framework.authentication.TokenAuthentication",
     ),
-    "DEFAULT_PERMISSION_CLASSES": ("rest_framework.permissions.IsAuthenticated",)
+    "DEFAULT_PERMISSION_CLASSES": ("rest_framework.permissions.IsAuthenticated",),
 }
 # TODO здесь мы настраиваем Djoser
 DJOSER = {
+    "USER_ID_FIELD": "email",
 }
 
 # Database

@@ -1,15 +1,17 @@
 from django.urls import include, path
-from djoser.views import UserViewSet
-from rest_framework.routers import SimpleRouter
-from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+from users.views import UsersViewSet
 from users.apps import UsersConfig
+from rest_framework.routers import DefaultRouter
 
 # TODO подключите UserViewSet из Djoser.views к нашим urls.py
 # TODO для этокого рекоммендуется использовать SimpleRouter
 
 app_name = UsersConfig.name
+router = DefaultRouter()
+router.register(r"users", UsersViewSet, basename="users")
+
 
 urlpatterns = [
-    path("token/", TokenObtainPairView.as_view(), name="token_obtain_pair"),
-    path("token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
+    path("", include(router.urls), name="users"),
+    path("", include("djoser.urls.authtoken")),
 ]
