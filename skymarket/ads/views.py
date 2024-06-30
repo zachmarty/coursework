@@ -19,7 +19,7 @@ class AdViewSet(viewsets.ModelViewSet):
         if self.action in ["create", "retrieve", "partial_update"]:
             return AdDetailSerializer
         return AdSerializer
-    
+
     def get_permissions(self):
         if self.action in ["partial_update", "destroy"]:
             self.permission_classes = [IsAuthenticated, IsAuthorOrSuper]
@@ -72,7 +72,6 @@ class AdViewSet(viewsets.ModelViewSet):
         if not instance.exists():
             raise NotFound
         instance = instance.first()
-        print(self.get_serializer_class())
         data = request.data
         user = self.request.user
         data["phone"] = str(user.phone)
@@ -105,65 +104,111 @@ class CommentViewSet(viewsets.ModelViewSet):
     serializer_class = CommentSerializer
     queryset = Ad.objects.all()
     pagination_class = CommentPaginator
-    lookup_url_kwarg = "ad_id"
-    lookup_field = "ad_id"
+
+    def get_permissions(self):
+        if self.action in ["partial_update", "destroy"]:
+            self.permission_classes = [IsAuthenticated, IsAuthorOrSuper]
+        return [permission() for permission in self.permission_classes]
 
     def get_queryset(self):
-        ad = self.kwargs['ad_id']
-        ad = Ad.objects.filter(id = ad)
+        ad = self.kwargs["ad_id"]
+        ad = Ad.objects.filter(id=ad)
         if not ad.exists():
             raise NotFound
         ad = ad.first()
-        queryset = Comment.objects.filter(ad = ad)
-        print('ok')
+        queryset = Comment.objects.filter(ad=ad)
         return self.paginate_queryset(queryset)
 
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
-        serializer = self.get_serializer(queryset, many = True)
-        print("ok")
+        serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
-    
+
     def create(self, request, *args, **kwargs):
         data = request.data
         user = self.request.user
-        instance = self.get_serializer(data = data)
-        instance.is_valid(raise_exception = True)
-        ad = self.kwargs['ad_id']
-        ad = Ad.objects.filter(id = ad).first()
-        new_comment = Comment.objects.create(text = data['text'], author = user, ad = ad)
+        instance = self.get_serializer(data=data)
+        instance.is_valid(raise_exception=True)
+        ad = self.kwargs["ad_id"]
+        ad = Ad.objects.filter(id=ad).first()
+        new_comment = Comment.objects.create(text=data["text"], author=user, ad=ad)
         new_comment.save()
         output_data = {
-            "pk":new_comment.id,
-            "author_id":user.id,
-            "created_at":new_comment.created_at,
-            "author_first_name":user.first_name,
-            "author_last_name":user.last_name,
-            "ad_id":ad.id,
-            "author_image":user.image,
+            "pk": new_comment.id,
+            "author_id": user.id,
+            "created_at": new_comment.created_at,
+            "author_first_name": user.first_name,
+            "author_last_name": user.last_name,
+            "ad_id": ad.id,
+            "author_image": user.image,
         }
         output_data.update(instance.validated_data)
         return Response(output_data)
-    
+
     def retrieve(self, request, *args, **kwargs):
-        ad = self.kwargs['ad_id']
-        ad = Ad.objects.filter(id = ad)
+        ad = self.kwargs["ad_id"]
+        ad = Ad.objects.filter(id=ad)
         if not ad.exists():
             raise NotFound
         ad = ad.first()
-        comment = Comment.objects.filter(id = kwargs['pk'])
+        comment = Comment.objects.filter(id=kwargs["pk"])
         if not comment.exists():
             raise NotFound
         comment = comment.first()
+        if not comment.ad == ad:
+            raise NotFound
         user = self.request.user
         output_data = {
-            "pk":comment.id,
-            "text":comment.text,
-            "author_id":user.id,
-            "created_at":comment.created_at,
-            "author_first_name":user.first_name,
-            "author_last_name":user.last_name,
-            "ad_id":ad.id,
-            "author_image":user.image,
+            "pk": comment.id,
+            "text": comment.text,
+            "author_id": user.id,
+            "created_at": comment.created_at,
+            "author_first_name": user.first_name,
+            "author_last_name": user.last_name,
+            "ad_id": ad.id,
+            "author_image": user.image,
         }
+        return Response(output_data)
 
+    def update(self, request, *args, **kwargs):
+        comment = Comment.objects.filter(id=kwargs["pk"])
+        if not comment.exists():
+            raise NotFound
+        comment = comment.first()
+        ad = Ad.objects.filter(id=kwargs["ad_id"])
+        if not ad.exists():
+            raise NotFound
+        ad = ad.first()
+        if not comment.ad == ad:
+            raise NotFound
+        data = request.data
+        serializer = self.get_serializer(data=data)
+        serializer.is_valid(raise_exception=True)
+        comment.text = data["text"]
+        comment.save()
+        user = self.request.user
+        output_data = {
+            "pk": comment.id,
+            "text": comment.text,
+            "author_id": user.id,
+            "created_at": comment.created_at,
+            "author_first_name": user.first_name,
+            "author_last_name": user.last_name,
+            "ad_id": ad.id,
+            "author_image": user.image,
+        }
+        return Response(output_data)
+
+    def destroy(self, request, *args, **kwargs):
+        comment = Comment.objects.filter(id=kwargs["pk"])
+        if not comment.exists():
+            raise NotFound
+        comment = comment.first()
+        ad = Ad.objects.filter(id=kwargs["ad_id"])
+        if not ad.exists():
+            raise NotFound
+        ad = ad.first()
+        if not comment.ad == ad:
+            raise NotFound
+        comment.delete()
+        return Response({"detail": "success"})
