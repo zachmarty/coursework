@@ -12,6 +12,8 @@ class CommentSerializer(serializers.ModelSerializer):
         model = Comment
         fields = [
             "text",
+            "id",
+            "created_at",
         ]
         validators = [TextLengthValidator(field="text")]
 

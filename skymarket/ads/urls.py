@@ -13,5 +13,5 @@ router_ads.register(r"ads", AdViewSet, basename="ads")
 router_comments.register(r"comments", CommentViewSet, basename="comments")
 urlpatterns = [
     path("ads/me", MyAdsView.as_view(), name="my_ads_list"),
-    path("ads/<int:ad_id>/", include(router_comments.urls), name="comments"),
+    path("ad/<int:ad_id>/", include(router_comments.urls), name="comments"),
 ] + router_ads.urls

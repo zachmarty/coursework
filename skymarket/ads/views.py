@@ -7,6 +7,7 @@ from rest_framework.generics import ListAPIView
 from rest_framework.exceptions import NotFound
 from rest_framework.permissions import IsAuthenticated
 from ads.permissions import IsAuthorOrSuper
+from users.models import User
 
 
 # TODO view функции. Предлагаем Вам следующую структуру - но Вы всегда можете использовать свою
@@ -119,10 +120,33 @@ class CommentViewSet(viewsets.ModelViewSet):
         queryset = Comment.objects.filter(ad=ad)
         return self.paginate_queryset(queryset)
 
+    def paginate_queryset(self, queryset):
+        if self.paginator is None:
+            return None
+        return self.paginator.paginate_queryset(queryset, self.request, view=self)
+
+    def get_paginated_response(self, data):
+        assert self.paginator is not None
+        return self.paginator.get_paginated_response(data)
+
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
         serializer = self.get_serializer(queryset, many=True)
-        return Response(serializer.data)
+        output_data = []
+        for comment in serializer.data:
+            obj = Comment.objects.get(id = comment['id'])
+            tmp = {
+                "pk": comment["id"],
+                "text": comment["text"],
+                "author_id": obj.author.id,
+                "created_at": comment["created_at"],
+                "author_first_name": obj.author.first_name,
+                "author_last_name": obj.author.last_name,
+                "ad_id": obj.ad.id,
+                "author_image": obj.author.image,
+            }
+            output_data.append(tmp)
+        return self.get_paginated_response(output_data)
 
     def create(self, request, *args, **kwargs):
         data = request.data
@@ -135,6 +159,7 @@ class CommentViewSet(viewsets.ModelViewSet):
         new_comment.save()
         output_data = {
             "pk": new_comment.id,
+            "text": new_comment.text,
             "author_id": user.id,
             "created_at": new_comment.created_at,
             "author_first_name": user.first_name,
@@ -142,7 +167,6 @@ class CommentViewSet(viewsets.ModelViewSet):
             "ad_id": ad.id,
             "author_image": user.image,
         }
-        output_data.update(instance.validated_data)
         return Response(output_data)
 
     def retrieve(self, request, *args, **kwargs):
